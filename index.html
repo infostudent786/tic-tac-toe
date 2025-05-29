@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Tic-Tac-Toe</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Smart Tic-Tac-Toe</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -16,32 +17,28 @@
       color: #333;
     }
 
-    #controls {
-      margin: 10px auto;
+    #controls, #scoreboard {
+      margin: 15px auto;
     }
 
     #board {
       display: grid;
-      grid-template-columns: repeat(3, 100px);
-      grid-template-rows: repeat(3, 100px);
+      grid-template-columns: repeat(3, 1fr);
+      max-width: 300px;
       gap: 5px;
-      justify-content: center;
       margin: 20px auto;
     }
 
     .cell {
       background: white;
-      font-size: 2em;
+      font-size: 2.5em;
+      height: 100px;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       border: 2px solid #333;
       user-select: none;
-    }
-
-    .cell:hover {
-      background: #e0e0e0;
     }
 
     .status {
@@ -52,134 +49,183 @@
     .winner { color: green; }
     .draw { color: orange; }
 
-    #scoreboard {
-      margin: 20px auto;
-    }
-
-    button {
+    button, select {
       padding: 10px 15px;
-      margin: 10px 5px;
       font-size: 1em;
+      margin: 10px 5px;
     }
 
-    select {
-      padding: 5px;
-      font-size: 1em;
+    @media (max-width: 600px) {
+      .cell {
+        height: 80px;
+        font-size: 2em;
+      }
     }
   </style>
 </head>
 <body>
 
-  <h1>✨ Enhanced Tic-Tac-Toe</h1>
+<h1>🧠 Smart Tic-Tac-Toe</h1>
 
-  <div id="controls">
-    <label>Mode:
-      <select id="modeSelect" onchange="resetGame()">
-        <option value="human">Player vs Player</option>
-        <option value="computer">Player vs Computer</option>
-      </select>
-    </label>
-  </div>
+<div id="controls">
+  <label>Mode:
+    <select id="modeSelect" onchange="resetGame()">
+      <option value="human">Player vs Player</option>
+      <option value="computer">Player vs AI</option>
+    </select>
+  </label>
+</div>
 
-  <div class="status" id="status">Player X's turn</div>
+<div class="status" id="status">Player X's turn</div>
 
-  <div id="board"></div>
+<div id="board"></div>
 
-  <button onclick="resetGame()">🔄 Reset Game</button>
+<button onclick="resetGame()">🔄 Reset Game</button>
 
-  <div id="scoreboard">
-    <p>🏆 Score — X: <span id="scoreX">0</span> | O: <span id="scoreO">0</span> | Draws: <span id="scoreDraw">0</span></p>
-  </div>
+<div id="scoreboard">
+  <p>🏆 Score — X: <span id="scoreX">0</span> | O: <span id="scoreO">0</span> | Draws: <span id="scoreDraw">0</span></p>
+</div>
 
-  <script>
-    let board = Array(9).fill(null);
-    let currentPlayer = 'X';
-    let gameOver = false;
-    let mode = 'human';
-    let scores = { X: 0, O: 0, Draw: 0 };
+<!-- Sound Effects -->
+<audio id="clickSound" src="https://www.soundjay.com/buttons/sounds/button-29.mp3"></audio>
+<audio id="winSound" src="https://www.soundjay.com/human/sounds/applause-01.mp3"></audio>
+<audio id="drawSound" src="https://www.soundjay.com/misc/sounds/bell-ringing-01.mp3"></audio>
 
-    const boardDiv = document.getElementById('board');
-    const statusDiv = document.getElementById('status');
-    const modeSelect = document.getElementById('modeSelect');
-    const scoreX = document.getElementById('scoreX');
-    const scoreO = document.getElementById('scoreO');
-    const scoreDraw = document.getElementById('scoreDraw');
+<script>
+  let board = Array(9).fill(null);
+  let currentPlayer = 'X';
+  let gameOver = false;
+  let mode = 'human';
+  let scores = { X: 0, O: 0, Draw: 0 };
 
-    function renderBoard() {
-      boardDiv.innerHTML = '';
-      board.forEach((value, i) => {
-        const cell = document.createElement('div');
-        cell.className = 'cell';
-        cell.textContent = value || '';
-        cell.onclick = () => handleMove(i);
-        boardDiv.appendChild(cell);
-      });
-    }
+  const boardDiv = document.getElementById('board');
+  const statusDiv = document.getElementById('status');
+  const modeSelect = document.getElementById('modeSelect');
+  const scoreX = document.getElementById('scoreX');
+  const scoreO = document.getElementById('scoreO');
+  const scoreDraw = document.getElementById('scoreDraw');
+  const clickSound = document.getElementById('clickSound');
+  const winSound = document.getElementById('winSound');
+  const drawSound = document.getElementById('drawSound');
 
-    function handleMove(index) {
-      if (board[index] || gameOver) return;
-      board[index] = currentPlayer;
-      if (checkWinner()) {
-        statusDiv.textContent = `🎉 Player ${currentPlayer} wins!`;
-        statusDiv.className = 'status winner';
-        scores[currentPlayer]++;
-        updateScores();
-        gameOver = true;
-      } else if (board.every(cell => cell)) {
-        statusDiv.textContent = `🤝 It's a draw!`;
-        statusDiv.className = 'status draw';
-        scores.Draw++;
-        updateScores();
-        gameOver = true;
-      } else {
-        currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
-        statusDiv.textContent = `Player ${currentPlayer}'s turn`;
-        statusDiv.className = 'status';
-        renderBoard();
-        if (!gameOver && mode === 'computer' && currentPlayer === 'O') {
-          setTimeout(computerMove, 500);
-        }
-      }
-      renderBoard();
-    }
+  function renderBoard() {
+    boardDiv.innerHTML = '';
+    board.forEach((value, i) => {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.textContent = value || '';
+      cell.onclick = () => handleMove(i);
+      boardDiv.appendChild(cell);
+    });
+  }
 
-    function computerMove() {
-      if (gameOver) return;
-      let emptyIndexes = board.map((v, i) => v === null ? i : null).filter(i => i !== null);
-      let randomIndex = emptyIndexes[Math.floor(Math.random() * emptyIndexes.length)];
-      handleMove(randomIndex);
-    }
+  function handleMove(index) {
+    if (board[index] || gameOver) return;
+    board[index] = currentPlayer;
+    clickSound.play();
 
-    function checkWinner() {
-      const winPatterns = [
-        [0,1,2], [3,4,5], [6,7,8],
-        [0,3,6], [1,4,7], [2,5,8],
-        [0,4,8], [2,4,6]
-      ];
-      return winPatterns.some(pattern =>
-        pattern.every(i => board[i] === currentPlayer)
-      );
-    }
-
-    function resetGame() {
-      board = Array(9).fill(null);
-      currentPlayer = 'X';
-      gameOver = false;
+    if (checkWinner(board, currentPlayer)) {
+      gameOver = true;
+      statusDiv.textContent = `🎉 Player ${currentPlayer} wins!`;
+      statusDiv.className = 'status winner';
+      scores[currentPlayer]++;
+      winSound.play();
+      updateScores();
+    } else if (board.every(cell => cell)) {
+      gameOver = true;
+      statusDiv.textContent = `🤝 It's a draw!`;
+      statusDiv.className = 'status draw';
+      scores.Draw++;
+      drawSound.play();
+      updateScores();
+    } else {
+      currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
       statusDiv.textContent = `Player ${currentPlayer}'s turn`;
       statusDiv.className = 'status';
-      mode = modeSelect.value;
       renderBoard();
+      if (!gameOver && mode === 'computer' && currentPlayer === 'O') {
+        setTimeout(() => {
+          let move = bestMove();
+          handleMove(move);
+        }, 400);
+      }
     }
+    renderBoard();
+  }
 
-    function updateScores() {
-      scoreX.textContent = scores.X;
-      scoreO.textContent = scores.O;
-      scoreDraw.textContent = scores.Draw;
+  function checkWinner(b, player) {
+    const winPatterns = [
+      [0,1,2], [3,4,5], [6,7,8],
+      [0,3,6], [1,4,7], [2,5,8],
+      [0,4,8], [2,4,6]
+    ];
+    return winPatterns.some(p => p.every(i => b[i] === player));
+  }
+
+  function bestMove() {
+    let bestScore = -Infinity;
+    let move;
+    board.forEach((val, i) => {
+      if (!val) {
+        board[i] = 'O';
+        let score = minimax(board, 0, false);
+        board[i] = null;
+        if (score > bestScore) {
+          bestScore = score;
+          move = i;
+        }
+      }
+    });
+    return move;
+  }
+
+  function minimax(b, depth, isMaximizing) {
+    if (checkWinner(b, 'O')) return 10 - depth;
+    if (checkWinner(b, 'X')) return depth - 10;
+    if (b.every(cell => cell)) return 0;
+
+    if (isMaximizing) {
+      let best = -Infinity;
+      b.forEach((val, i) => {
+        if (!val) {
+          b[i] = 'O';
+          best = Math.max(best, minimax(b, depth + 1, false));
+          b[i] = null;
+        }
+      });
+      return best;
+    } else {
+      let best = Infinity;
+      b.forEach((val, i) => {
+        if (!val) {
+          b[i] = 'X';
+          best = Math.min(best, minimax(b, depth + 1, true));
+          b[i] = null;
+        }
+      });
+      return best;
     }
+  }
 
-    // Initial setup
-    resetGame();
-  </script>
+  function resetGame() {
+    board = Array(9).fill(null);
+    currentPlayer = 'X';
+    gameOver = false;
+    mode = modeSelect.value;
+    statusDiv.textContent = `Player ${currentPlayer}'s turn`;
+    statusDiv.className = 'status';
+    renderBoard();
+  }
+
+  function updateScores() {
+    scoreX.textContent = scores.X;
+    scoreO.textContent = scores.O;
+    scoreDraw.textContent = scores.Draw;
+  }
+
+  // Start
+  resetGame();
+</script>
 
 </body>
 </html>
