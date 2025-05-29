@@ -1,29 +1,29 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="classic">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Smart Tic-Tac-Toe</title>
   <style>
     :root {
-      --bg-light: #f0f0f0;
-      --text-light: #222;
-      --bg-dark: #121212;
-      --text-dark: #f0f0f0;
-      --accent-light: #007acc;
-      --accent-dark: #00c0c0;
+      --bg-classic: #e6f0ff;
+      --text-classic: #1a2a44;
+      --accent-classic: #007bff;
+      --bg-vibrant: #f3e5ff;
+      --text-vibrant: #2d1b4e;
+      --accent-vibrant: #8a2be2;
     }
 
-    html[data-theme='light'] {
-      --bg: var(--bg-light);
-      --text: var(--text-light);
-      --accent: var(--accent-light);
+    html[data-theme='classic'] {
+      --bg: var(--bg-classic);
+      --text: var(--text-classic);
+      --accent: var(--accent-classic);
     }
 
-    html[data-theme='dark'] {
-      --bg: var(--bg-dark);
-      --text: var(--text-dark);
-      --accent: var(--accent-dark);
+    html[data-theme='vibrant'] {
+      --bg: var(--bg-vibrant);
+      --text: var(--text-vibrant);
+      --accent: var(--accent-vibrant);
     }
 
     body {
@@ -66,9 +66,21 @@
       transition: background 0.3s, transform 0.2s;
     }
 
-    .cell:hover {
+    .cell:hover:not(.x):not(.o) {
       background: #e0e0e0;
       transform: scale(1.05);
+    }
+
+    .cell.x {
+      background: #b3d9ff;
+      color: #004085;
+      transition: background 0.3s ease-in-out;
+    }
+
+    .cell.o {
+      background: #ffb3b3;
+      color: #850000;
+      transition: background 0.3s ease-in-out;
     }
 
     .status {
@@ -78,8 +90,8 @@
       animation: fadeIn 0.6s forwards;
     }
 
-    .winner { color: lime; }
-    .draw { color: orange; }
+    .winner { color: #28a745; }
+    .draw { color: #ff8c00; }
 
     button, select {
       padding: 10px 15px;
@@ -120,7 +132,7 @@
       <option value="computer">Player vs AI</option>
     </select>
   </label>
-  <button onclick="toggleTheme()">🌓 Toggle Theme</button>
+  <button onclick="toggleTheme()">🖌️ Toggle Theme</button>
 </div>
 
 <div class="status" id="status">Player X's turn</div>
@@ -159,7 +171,7 @@
     boardDiv.innerHTML = '';
     board.forEach((value, i) => {
       const cell = document.createElement('div');
-      cell.className = 'cell';
+      cell.className = `cell ${value ? value.toLowerCase() : ''}`;
       cell.textContent = value || '';
       cell.onclick = () => handleMove(i);
       boardDiv.appendChild(cell);
@@ -272,7 +284,7 @@
 
   function toggleTheme() {
     const html = document.documentElement;
-    html.dataset.theme = html.dataset.theme === 'dark' ? 'light' : 'dark';
+    html.dataset.theme = html.dataset.theme === 'classic' ? 'vibrant' : 'classic';
   }
 
   // Start
