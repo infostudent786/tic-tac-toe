@@ -7,12 +7,17 @@
     body {
       font-family: Arial, sans-serif;
       text-align: center;
-      background: #f4f4f4;
-      margin-top: 50px;
+      background: #f0f0f0;
+      margin: 0;
+      padding: 20px;
     }
 
     h1 {
       color: #333;
+    }
+
+    #controls {
+      margin: 10px auto;
     }
 
     #board {
@@ -32,51 +37,80 @@
       justify-content: center;
       cursor: pointer;
       border: 2px solid #333;
+      user-select: none;
     }
 
     .cell:hover {
       background: #e0e0e0;
     }
 
-    .winner {
-      font-size: 1.5em;
-      color: green;
+    .status {
+      font-size: 1.3em;
+      margin: 10px 0;
     }
 
-    .draw {
-      font-size: 1.5em;
-      color: orange;
+    .winner { color: green; }
+    .draw { color: orange; }
+
+    #scoreboard {
+      margin: 20px auto;
     }
 
     button {
-      padding: 10px 20px;
+      padding: 10px 15px;
+      margin: 10px 5px;
       font-size: 1em;
-      margin-top: 20px;
+    }
+
+    select {
+      padding: 5px;
+      font-size: 1em;
     }
   </style>
 </head>
 <body>
 
-  <h1>Tic-Tac-Toe</h1>
-  <div id="status">Player X's turn</div>
+  <h1>✨ Enhanced Tic-Tac-Toe</h1>
+
+  <div id="controls">
+    <label>Mode:
+      <select id="modeSelect" onchange="resetGame()">
+        <option value="human">Player vs Player</option>
+        <option value="computer">Player vs Computer</option>
+      </select>
+    </label>
+  </div>
+
+  <div class="status" id="status">Player X's turn</div>
+
   <div id="board"></div>
-  <button onclick="resetGame()">Reset Game</button>
+
+  <button onclick="resetGame()">🔄 Reset Game</button>
+
+  <div id="scoreboard">
+    <p>🏆 Score — X: <span id="scoreX">0</span> | O: <span id="scoreO">0</span> | Draws: <span id="scoreDraw">0</span></p>
+  </div>
 
   <script>
-    const board = Array(9).fill(null);
+    let board = Array(9).fill(null);
     let currentPlayer = 'X';
     let gameOver = false;
+    let mode = 'human';
+    let scores = { X: 0, O: 0, Draw: 0 };
 
-    const statusDiv = document.getElementById('status');
     const boardDiv = document.getElementById('board');
+    const statusDiv = document.getElementById('status');
+    const modeSelect = document.getElementById('modeSelect');
+    const scoreX = document.getElementById('scoreX');
+    const scoreO = document.getElementById('scoreO');
+    const scoreDraw = document.getElementById('scoreDraw');
 
-    function createBoard() {
+    function renderBoard() {
       boardDiv.innerHTML = '';
       board.forEach((value, i) => {
         const cell = document.createElement('div');
         cell.className = 'cell';
-        cell.dataset.index = i;
-        cell.textContent = value;
+        cell.textContent = value || '';
         cell.onclick = () => handleMove(i);
         boardDiv.appendChild(cell);
       });
@@ -86,18 +120,34 @@
       if (board[index] || gameOver) return;
       board[index] = currentPlayer;
       if (checkWinner()) {
-        statusDiv.textContent = `Player ${currentPlayer} wins!`;
-        statusDiv.className = 'winner';
+        statusDiv.textContent = `🎉 Player ${currentPlayer} wins!`;
+        statusDiv.className = 'status winner';
+        scores[currentPlayer]++;
+        updateScores();
         gameOver = true;
       } else if (board.every(cell => cell)) {
-        statusDiv.textContent = "It's a draw!";
-        statusDiv.className = 'draw';
+        statusDiv.textContent = `🤝 It's a draw!`;
+        statusDiv.className = 'status draw';
+        scores.Draw++;
+        updateScores();
         gameOver = true;
       } else {
         currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
         statusDiv.textContent = `Player ${currentPlayer}'s turn`;
+        statusDiv.className = 'status';
+        renderBoard();
+        if (!gameOver && mode === 'computer' && currentPlayer === 'O') {
+          setTimeout(computerMove, 500);
+        }
       }
-      createBoard();
+      renderBoard();
+    }
+
+    function computerMove() {
+      if (gameOver) return;
+      let emptyIndexes = board.map((v, i) => v === null ? i : null).filter(i => i !== null);
+      let randomIndex = emptyIndexes[Math.floor(Math.random() * emptyIndexes.length)];
+      handleMove(randomIndex);
     }
 
     function checkWinner() {
@@ -106,21 +156,29 @@
         [0,3,6], [1,4,7], [2,5,8],
         [0,4,8], [2,4,6]
       ];
-      return winPatterns.some(pattern => 
+      return winPatterns.some(pattern =>
         pattern.every(i => board[i] === currentPlayer)
       );
     }
 
     function resetGame() {
-      for (let i = 0; i < board.length; i++) board[i] = null;
+      board = Array(9).fill(null);
       currentPlayer = 'X';
       gameOver = false;
       statusDiv.textContent = `Player ${currentPlayer}'s turn`;
-      statusDiv.className = '';
-      createBoard();
+      statusDiv.className = 'status';
+      mode = modeSelect.value;
+      renderBoard();
     }
 
-    createBoard();
+    function updateScores() {
+      scoreX.textContent = scores.X;
+      scoreO.textContent = scores.O;
+      scoreDraw.textContent = scores.Draw;
+    }
+
+    // Initial setup
+    resetGame();
   </script>
 
 </body>
