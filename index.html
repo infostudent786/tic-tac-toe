@@ -1,20 +1,44 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Smart Tic-Tac-Toe</title>
   <style>
+    :root {
+      --bg-light: #f0f0f0;
+      --text-light: #222;
+      --bg-dark: #121212;
+      --text-dark: #f0f0f0;
+      --accent-light: #007acc;
+      --accent-dark: #00c0c0;
+    }
+
+    html[data-theme='light'] {
+      --bg: var(--bg-light);
+      --text: var(--text-light);
+      --accent: var(--accent-light);
+    }
+
+    html[data-theme='dark'] {
+      --bg: var(--bg-dark);
+      --text: var(--text-dark);
+      --accent: var(--accent-dark);
+    }
+
     body {
       font-family: Arial, sans-serif;
       text-align: center;
-      background: #f0f0f0;
+      background: var(--bg);
+      color: var(--text);
       margin: 0;
       padding: 20px;
+      transition: background 0.4s, color 0.4s;
     }
 
     h1 {
-      color: #333;
+      color: var(--accent);
+      transition: color 0.4s;
     }
 
     #controls, #scoreboard {
@@ -37,22 +61,44 @@
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      border: 2px solid #333;
+      border: 2px solid var(--accent);
       user-select: none;
+      transition: background 0.3s, transform 0.2s;
+    }
+
+    .cell:hover {
+      background: #e0e0e0;
+      transform: scale(1.05);
     }
 
     .status {
       font-size: 1.3em;
       margin: 10px 0;
+      opacity: 0;
+      animation: fadeIn 0.6s forwards;
     }
 
-    .winner { color: green; }
+    .winner { color: lime; }
     .draw { color: orange; }
 
     button, select {
       padding: 10px 15px;
       font-size: 1em;
       margin: 10px 5px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    button:hover, select:hover {
+      background: #005f99;
+    }
+
+    @keyframes fadeIn {
+      to { opacity: 1; }
     }
 
     @media (max-width: 600px) {
@@ -65,7 +111,7 @@
 </head>
 <body>
 
-<h1>🧠 Smart Tic-Tac-Toe</h1>
+<h1>🎮 Smart Tic-Tac-Toe</h1>
 
 <div id="controls">
   <label>Mode:
@@ -74,6 +120,7 @@
       <option value="computer">Player vs AI</option>
     </select>
   </label>
+  <button onclick="toggleTheme()">🌓 Toggle Theme</button>
 </div>
 
 <div class="status" id="status">Player X's turn</div>
@@ -86,7 +133,7 @@
   <p>🏆 Score — X: <span id="scoreX">0</span> | O: <span id="scoreO">0</span> | Draws: <span id="scoreDraw">0</span></p>
 </div>
 
-<!-- Sound Effects -->
+<!-- Sounds -->
 <audio id="clickSound" src="https://www.soundjay.com/buttons/sounds/button-29.mp3"></audio>
 <audio id="winSound" src="https://www.soundjay.com/human/sounds/applause-01.mp3"></audio>
 <audio id="drawSound" src="https://www.soundjay.com/misc/sounds/bell-ringing-01.mp3"></audio>
@@ -179,12 +226,12 @@
     return move;
   }
 
-  function minimax(b, depth, isMaximizing) {
+  function minimax(b, depth, isMax) {
     if (checkWinner(b, 'O')) return 10 - depth;
     if (checkWinner(b, 'X')) return depth - 10;
     if (b.every(cell => cell)) return 0;
 
-    if (isMaximizing) {
+    if (isMax) {
       let best = -Infinity;
       b.forEach((val, i) => {
         if (!val) {
@@ -221,6 +268,11 @@
     scoreX.textContent = scores.X;
     scoreO.textContent = scores.O;
     scoreDraw.textContent = scores.Draw;
+  }
+
+  function toggleTheme() {
+    const html = document.documentElement;
+    html.dataset.theme = html.dataset.theme === 'dark' ? 'light' : 'dark';
   }
 
   // Start
